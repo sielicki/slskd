@@ -539,24 +539,30 @@ namespace slskd
                     .UseUrls()
                     .UseKestrel(options =>
                     {
-                        // configure HTTP, either by listening at any IP or by each of the IPs provided in the
-                        // config (note: they've already been validated at this point!)
-                        if (string.IsNullOrWhiteSpace(OptionsAtStartup.Web.IpAddress))
+                        // configure HTTP over TCP, either by listening at any IP or by each of the IPs provided in the
+                        // config (note: they've already been validated at this point!).  skip TCP entirely when a unix
+                        // domain socket is configured and no IP address is explicitly specified; in that case HTTP is
+                        // served over the socket only (e.g. behind a reverse proxy).  specifying an IP address
+                        // alongside a socket binds both.
+                        if (OptionsAtStartup.Web.Socket == null || !string.IsNullOrWhiteSpace(OptionsAtStartup.Web.IpAddress))
                         {
-                            Log.Information("Listening for HTTP requests at http://{IP}:{Port}/", IPAddress.IPv6Any, OptionsAtStartup.Web.Port);
-                            options.Listen(IPAddress.IPv6Any, OptionsAtStartup.Web.Port); // [::]; any IPv4 or IPv6 address
-                        }
-                        else
-                        {
-                            var httpIps = OptionsAtStartup.Web.IpAddress
-                                .Split(',')
-                                .Select(ip => ip.Trim())
-                                .Select(ip => IPAddress.Parse(ip));
-
-                            foreach (var ip in httpIps)
+                            if (string.IsNullOrWhiteSpace(OptionsAtStartup.Web.IpAddress))
                             {
-                                Log.Information("Listening for HTTP requests at http://{IP}:{Port}/", ip, OptionsAtStartup.Web.Port);
-                                options.Listen(ip, OptionsAtStartup.Web.Port);
+                                Log.Information("Listening for HTTP requests at http://{IP}:{Port}/", IPAddress.IPv6Any, OptionsAtStartup.Web.Port);
+                                options.Listen(IPAddress.IPv6Any, OptionsAtStartup.Web.Port); // [::]; any IPv4 or IPv6 address
+                            }
+                            else
+                            {
+                                var httpIps = OptionsAtStartup.Web.IpAddress
+                                    .Split(',')
+                                    .Select(ip => ip.Trim())
+                                    .Select(ip => IPAddress.Parse(ip));
+
+                                foreach (var ip in httpIps)
+                                {
+                                    Log.Information("Listening for HTTP requests at http://{IP}:{Port}/", ip, OptionsAtStartup.Web.Port);
+                                    options.Listen(ip, OptionsAtStartup.Web.Port);
+                                }
                             }
                         }
 

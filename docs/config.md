@@ -871,7 +871,7 @@ The default HTTP listen port is 5030, but can be anything between 1 and 65535.
 
 The default HTTP IP address is `[::]` which corresponds to any IPv4 or IPv6 IP address; all network interfaces on the host.  Specifying an IP address will cause the application to listen only on the specified network interface.  Multiple IP addresses can be supplied in a comma-separated list, and both IPv4 and IPv6 formats can be supplied.
 
-A [unix domain socket](https://en.wikipedia.org/wiki/Unix_domain_socket) can be used on both unix-like operating systems and Windows. The specified socket file path must be absolute, and must point to a file that does not exist (slskd will manage it automatically).
+A [unix domain socket](https://en.wikipedia.org/wiki/Unix_domain_socket) can be used on both unix-like operating systems and Windows. The specified socket file path must be absolute, and must point to a file that does not exist (slskd will manage it automatically). Specifying a socket disables the TCP HTTP listener, so that HTTP is served over the socket only (for example, behind a reverse proxy); to bind both, also explicitly specify an HTTP IP address. Note that this applies to HTTP only; HTTPS remains bound over TCP unless disabled separately.
 
 The URL base option allows the application to operate behind a reverse proxy. Setting a base of "slskd" would make the web UI accessible at `http://<host>:<port>/slskd`.
 
